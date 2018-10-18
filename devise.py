@@ -16,10 +16,13 @@ num_labels = 150
 
 def pre_train():
     print('pre-train of two models')
+
     word_to_vec.train_word2vec()
-    image_dataset, one_hot_label, label2int, int2label = utils.load_data()
-    model = visual_model.AlexNet(batch_size=1)
-    model.train(image_dataset, one_hot_label)
+
+    train_x = utils.get_image_data()
+    train_y = utils.get_one_hot_label_data()
+    model = visual_model.AlexNet()
+    model.train(train_x, train_y)
     print('Alex model and Word2Vec model have been trained..')
 
 
@@ -70,6 +73,7 @@ class DeViSE(object):
 
 
     def train(self, image_data, label_data, int2label):
+        print('DeViSE model is training...')
         saver = tf.train.Saver()
         self.word_model_wv = self.word_model.wv
         with tf.Session() as sess:
@@ -88,7 +92,7 @@ class DeViSE(object):
                     label = self.word_model_wv[label]
                 else:
                     label = self.word_model_wv['bird']
-                other_label = np.random.randint(0, num_label)
+                other_label = np.random.randint(0, num_labels)
                 other_label = int2label[other_label]
                 other_label = other_label.split('_')[0].lower()
                 if other_label in self.word_model_wv.vocab:
@@ -121,9 +125,8 @@ class DeViSE(object):
             image_repesentation = sess.run(self.alex_model.repsentation, feed_dict=feed)
             feed = {self.input_x: image_repesentation.T}
             label_representation = sess.run(self.prediction, feed_dict=feed)
-            #
+
             label_representation = np.reshape(label_representation, (200))
-            print(label_representation.shape)
             most_similar = self.word_model.similar_by_vector(label_representation, topn=1)
 
         prediction_label = most_similar[0][0]
@@ -135,10 +138,12 @@ class DeViSE(object):
 
 
 if __name__ == '__main__':
+    pre_train()
     train_x = utils.get_image_data()
     label2int, int2label = utils.get_parameter()
     numeral_labels = utils.get_numeral_label_data()
     d_model = DeViSE()
     d_model.train(train_x, numeral_labels, int2label)
     prediction = d_model.predict(train_x[0])
-    print(prediction)
+    print('real label is: {}'.format(int2label[numeral_labels[0]]),
+          '\n predicting label is: {}'.format(prediction))

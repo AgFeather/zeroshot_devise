@@ -12,8 +12,8 @@ unknown_label_size = 50
 train_data_path = 'dataset/train_images'
 save_path = 'v_saved_model/'
 show_every_n = 100
-saved_every_n = 100
-train_step = 10000
+saved_every_n = 2000
+
 
 
 '''
